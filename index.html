@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temp Note</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Dark Mode Config & Font Setup -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class', // Enable dark mode based on a class
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+  <link rel="icon" href="data:," />
+  <style>
+    /* Light Mode */
+    ::selection { background: #cfe3ff; color: #000; }
+    textarea::-webkit-scrollbar { width: 8px; }
+    textarea::-webkit-scrollbar-track { background: transparent; }
+    textarea::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 4px; }
+    textarea::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
+
+    /* Dark Mode */
+    .dark ::selection { background: #3b82f6; color: #fff; }
+    .dark textarea::-webkit-scrollbar-thumb { background-color: #4b5563; }
+    .dark textarea::-webkit-scrollbar-thumb:hover { background-color: #6b7280; }
+
+    /* Hide the modal by default */
+    #confirmModal {
+      display: none;
+    }
+  </style>
+</head>
+
+<body class="font-sans bg-white text-gray-900 dark:bg-[#1a1a1a] dark:text-gray-200 flex flex-col min-h-screen transition-colors duration-200">
+
+  <!-- Header -->
+  <header class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center text-sm select-none w-full">
+    <div>
+      <span class="font-medium text-gray-800 dark:text-gray-100">Temp Note</span>
+    </div>
+
+    <!-- Buttons Right -->
+    <div class="flex gap-2">
+      <!-- Theme Toggle Button -->
+      <button id="themeToggle" title="Toggle Theme" class="w-9 h-9 flex items-center justify-center text-gray-600 dark:text-gray-300 bg-transparent dark:hover:bg-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+        <i id="themeIconSun" class="fa-solid fa-sun"></i>
+        <i id="themeIconMoon" class="fa-solid fa-moon"></i>
+      </button>
+
+      <button id="selectAll" title="Select All" class="w-9 h-9 flex items-center justify-center text-gray-600 dark:text-gray-300 bg-transparent dark:hover:bg-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+        <i class="fa-solid fa-text-width"></i>
+      </button>
+      <button id="copyAll" title="Copy All" class="w-9 h-9 flex items-center justify-center text-gray-600 dark:text-gray-300 bg-transparent dark:hover:bg-gray-700 rounded-lg hover:bg-gray-100 transition-all duration-200">
+        <i class="fa-solid fa-copy"></i>
+      </button>
+      <button id="clearAll" title="Clear All" class="w-9 h-9 flex items-center justify-center text-red-500 dark:text-red-500 bg-transparent dark:hover:bg-red-900/20 rounded-lg hover:bg-red-100 transition-all duration-200">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      <button id="exportTxt" class="px-3 py-2 h-9 flex items-center gap-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200">
+        <i class="fa-solid fa-file-arrow-down"></i>
+        <span class="hidden sm:inline">Export</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Full Screen Note Area -->
+  <textarea id="note"
+    class="flex-1 w-full p-6 md:p-10 text-base md:text-lg outline-none resize-none font-mono leading-relaxed bg-transparent dark:placeholder-gray-600"
+    placeholder="Start typing your notes here..."
+    spellcheck="false"
+  ></textarea>
+  
+  <!-- Custom Confirm Modal -->
+  <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Clear All Notes?</h3>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        This action cannot be undone. Are you sure you want to delete everything?
+      </a_>
+      <div class="mt-6 flex justify-end gap-3">
+        <button id="modalCancel" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
+          Cancel
+        </button>
+        <button id="modalConfirm" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+          Clear All
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Get all elements
+  const noteEl = document.getElementById("note");
+  // Removed statusDot and statusText elements
+  const selectBtn = document.getElementById("selectAll");
+  const copyBtn = document.getElementById("copyAll");
+  const clearBtn = document.getElementById("clearAll");
+  const exportBtn = document.getElementById("exportTxt");
+  
+  // Theme Toggle Elements
+  const themeToggleBtn = document.getElementById("themeToggle");
+  const themeIconSun = document.getElementById("themeIconSun");
+  const themeIconMoon = document.getElementById("themeIconMoon");
+  const htmlEl = document.documentElement;
+  
+  // Modal Elements
+  const confirmModal = document.getElementById("confirmModal");
+  const modalCancel = document.getElementById("modalCancel");
+  const modalConfirm = document.getElementById("modalConfirm");
+
+  // --- Theme Toggle Logic ---
+  function setTheme(theme) {
+    if (theme === 'dark') {
+      htmlEl.classList.add('dark');
+      themeIconSun.style.display = 'none';
+      themeIconMoon.style.display = 'inline-block';
+      localStorage.setItem('theme', 'dark');
+    } else {
+      htmlEl.classList.remove('dark');
+      themeIconSun.style.display = 'inline-block';
+      themeIconMoon.style.display = 'none';
+      localStorage.setItem('theme', 'light');
+    }
+  }
+
+  themeToggleBtn.addEventListener('click', () => {
+    const currentTheme = htmlEl.classList.contains('dark') ? 'dark' : 'light';
+    setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+  });
+
+  function loadTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else if (systemPrefersDark) {
+      setTheme('dark');
+    } else {
+      setTheme('light');
+    }
+  }
+  // --- End of Theme Logic ---
+
+  // Select All
+  selectBtn.addEventListener("click", () => {
+    noteEl.focus();
+    noteEl.select();
+  });
+
+  // Copy All
+  copyBtn.addEventListener("click", async () => {
+    if (!noteEl.value) return; // Don't copy if empty
+    try {
+      await navigator.clipboard.writeText(noteEl.value);
+    } catch (err) {
+      try {
+        noteEl.focus();
+        noteEl.select();
+        document.execCommand('copy');
+      } catch (e) {
+        console.error("Failed to copy text: ", e);
+        // Removed status update
+        return;
+      }
+    }
+
+});
+
+  // --- Clear All Modal Logic ---
+  clearBtn.addEventListener("click", () => {
+    confirmModal.style.display = 'flex';
+  });
+  
+  modalCancel.addEventListener("click", () => {
+    confirmModal.style.display = 'none';
+  });
+  
+  modalConfirm.addEventListener("click", () => {
+    noteEl.value = "";
+
+    confirmModal.style.display = 'none';
+  });
+  // --- End of Modal Logic ---
+
+  // Export to TXT
+  exportBtn.addEventListener("click", () => {
+    const blob = new Blob([noteEl.value], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "QuickPad_Note.txt";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  loadTheme(); // Apply the correct theme
+</script>
+
+</body>
+</html>
